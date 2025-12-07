@@ -16,7 +16,45 @@ DJLibraryService::DJLibraryService(const Playlist& playlist)
 void DJLibraryService::buildLibrary(const std::vector<SessionConfig::TrackInfo>& library_tracks) {
     //Todo: Implement buildLibrary method
     std::cout << "TODO: Implement DJLibraryService::buildLibrary method\n"<< library_tracks.size() << " tracks to be loaded into library.\n";
+ library.clear(); 
+
+    for (const auto& track_info : library_tracks) {
+        AudioTrack* new_track = nullptr;
+
+        if (track_info.type == "MP3") {
+            new_track = new MP3Track(
+                track_info.title, 
+                track_info.artists, 
+                track_info.duration_seconds, 
+                track_info.bpm, 
+                track_info.extra_param1, 
+                track_info.extra_param2  !=0           
+            );
+            std::cout << "MP3: MP3Track created: " << track_info.extra_param1 << " kbps\n";
+        } else if (track_info.type == "WAV") {
+            new_track = new WAVTrack(
+                track_info.title, 
+                track_info.artists, 
+                track_info.duration_seconds, 
+                track_info.bpm, 
+                track_info.extra_param1, 
+                track_info.extra_param2
+            );
+            std::cout << "WAV: WAVTrack created: " 
+                      << track_info.extra_param1 << "Hz/" 
+                      << track_info.extra_param2 << "bit\n";
+        } else {
+            std::cerr << "[ERROR] Unknown track format: " << track_info.type << ". Skipping.\n";
+            continue;
+        }
+
+        if (new_track) {
+            library.push_back(PointerWrapper<AudioTrack>(new_track));
+        }
+    }
+    std::cout << "[INFO] Track library built: " << library.size() << " tracks loaded.\n";
 }
+
 
 /**
  * @brief Display the current state of the DJ library playlist
@@ -54,15 +92,39 @@ Playlist& DJLibraryService::getPlaylist() {
  */
 AudioTrack* DJLibraryService::findTrack(const std::string& track_title) {
     // Your implementation here
-    return nullptr; // Placeholder
-}
+AudioTrack* found_track = playlist.find_track(track_title);
 
-void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name, 
+    // This is optional logging, but useful for debugging/confirmation
+    if (found_track) {
+        std::cout << "[INFO] Found track: '" << track_title << "' in playlist.\n";
+    } else {
+        std::cout << "[INFO] Track '" << track_title << "' not found in playlist.\n";
+    }
+
+    return found_track;
+}
+void DJLibraryService::loadPlaylistFromIndices(const std::string& /*playlist_name*/, 
                                                const std::vector<int>& track_indices) {
     // Your implementation here
-    // For now, add a placeholder to fix the linker error
-    (void)playlist_name;  // Suppress unused parameter warning
-    (void)track_indices;  // Suppress unused parameter warning
+  for (int index : track_indices) {
+        size_t lib_index = index - 1;
+        if (index < 1 || lib_index >= library.size()) {
+            std::cout << "[WARNING] Invalid track index: " << index << ". Skipping.\n";
+            continue;
+        }
+
+        AudioTrack* canonical_track = library[lib_index].get();
+        PointerWrapper<AudioTrack> cloned_track = canonical_track->clone();
+        
+        if (cloned_track) {
+            cloned_track.get()->load();
+            cloned_track.get()->analyze_beatgrid();
+            playlist.add_track(cloned_track.release());
+            // ... log
+        } else {
+             std::cout << "[ERROR] Failed to clone track at index: " << index << ". Skipping.\n";
+        }
+    }
 }
 /**
  * TODO: Implement getTrackTitles method
@@ -70,5 +132,16 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name,
  */
 std::vector<std::string> DJLibraryService::getTrackTitles() const {
     // Your implementation here
-    return std::vector<std::string>(); // Placeholder
+ std::vector<std::string> titles;
+
+    std::vector<AudioTrack*> tracks = playlist.getTracks();
+
+    titles.reserve(tracks.size());
+    for (AudioTrack* track : tracks) {
+        if (track != nullptr) {
+            titles.push_back(track->get_title());
+        }
+    }
+
+    return titles;
 }

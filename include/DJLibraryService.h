@@ -6,6 +6,7 @@
 #include "SessionFileParser.h"
 #include <vector>
 #include <string>
+#include "PointerWrapper.h"
 
 // Service responsible for managing the track library and playlists
 // Phase 4 behavior alignment:
@@ -51,7 +52,7 @@ public:
 
 private:
     Playlist playlist;
-    std::vector<AudioTrack*> library;  // Library of all tracks (owned)
+std::vector<PointerWrapper<AudioTrack>> library;
 };
 
 #endif // DJLIBRARYSERVICE_H

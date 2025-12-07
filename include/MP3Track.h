@@ -28,6 +28,17 @@ public:
 
     // ========== TODO: IMPLEMENT VIRTUAL FUNCTIONS ==========
 
+     MP3Track(const MP3Track& other);
+
+    MP3Track& operator=(const MP3Track& other);
+
+    MP3Track(MP3Track&& other) noexcept; 
+
+    MP3Track& operator=(MP3Track&& other) noexcept;
+                 
+    ~MP3Track() override; 
+
+
     /**
      * TODO: Implement load function for MP3 files
      * HINT: Print loading message specific to MP3 format

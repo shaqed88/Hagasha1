@@ -28,7 +28,17 @@ public:
              int duration, int bpm, int sample_rate, int bit_depth);
 
     // ========== TODO: IMPLEMENT VIRTUAL FUNCTIONS ==========
+          WAVTrack(const WAVTrack& other);  
 
+     WAVTrack& operator=(const WAVTrack& other);
+
+    
+    WAVTrack(WAVTrack&& other) noexcept; 
+ 
+    
+    WAVTrack& operator=(WAVTrack&& other) noexcept;
+
+    ~WAVTrack() override;
     /**
      * TODO: Implement load function for WAV files
      * HINT: WAV files are uncompressed, so loading might be faster

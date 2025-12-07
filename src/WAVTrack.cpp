@@ -10,9 +10,63 @@ WAVTrack::WAVTrack(const std::string& title, const std::vector<std::string>& art
 
 // ========== TODO: STUDENTS IMPLEMENT THESE VIRTUAL FUNCTIONS ==========
 
+WAVTrack::~WAVTrack() {
+}
+
+WAVTrack::WAVTrack(const WAVTrack& other)
+    
+    : AudioTrack(other), 
+      sample_rate(other.sample_rate),
+      bit_depth(other.bit_depth) 
+{}
+
+WAVTrack& WAVTrack::operator=(const WAVTrack& other) {
+    if (this != &other) {
+        AudioTrack::operator=(other);
+        
+        sample_rate = other.sample_rate;
+        bit_depth = other.bit_depth;
+    }
+    return *this;
+}
+
+WAVTrack::WAVTrack(WAVTrack&& other) noexcept 
+    : AudioTrack(std::move(other)), 
+      sample_rate(other.sample_rate),
+      bit_depth(other.bit_depth) 
+{
+}
+
+
+WAVTrack& WAVTrack::operator=(WAVTrack&& other) noexcept {
+    if (this != &other) {
+        AudioTrack::operator=(std::move(other));
+        
+        sample_rate = other.sample_rate;
+        bit_depth = other.bit_depth;
+        
+    }
+    return *this;
+}
+    
+
+
 void WAVTrack::load() {
     // TODO: Implement realistic WAV loading simulation
     // NOTE: Use exactly 2 spaces before the arrow (→) character
+        std::cout << "[WAVTrack::load] Loading WAV: \"" << get_title()
+              << "\" at " << sample_rate << "Hz/" << bit_depth
+              << "bit (uncompressed)..." << std::endl;
+
+    long long estimated_size =
+        static_cast<long long>(duration_seconds) *
+        sample_rate *
+        (bit_depth / 8) * 2;
+
+    std::cout << "  → Estimated file size: " << estimated_size << " bytes" << std::endl;
+    std::cout << "  → Fast loading due to uncompressed format." << std::endl;
+
+
 
 }
 
@@ -24,16 +78,50 @@ void WAVTrack::analyze_beatgrid() {
     // 2. Calculate beats: (duration_seconds / 60.0) * bpm
     // 3. Print number of beats and mention uncompressed precision
     // should print "  → Estimated beats: <beats>  → Precision factor: 1.0 (uncompressed audio)"
+    std::cout << "[WAVTrack::analyze_beatgrid] Analyzing beat grid for: \""
+              << get_title() << "\"" << std::endl;
+
+    double beats = (duration_seconds / 60.0) * bpm;
+    int final_beats = static_cast<int>(beats);
+
+    std::cout << "  → Estimated beats: " << final_beats
+              << "  → Precision factor: 1 (uncompressed audio)" << std::endl;
+
 }
 
 double WAVTrack::get_quality_score() const {
     // TODO: Implement WAV quality scoring
     // NOTE: Use exactly 2 spaces before each arrow (→) character
     // NOTE: Cast beats to integer when printing
-    return 0.0; // Replace with your implementation
-}
+     double score = 70.0;
 
+    if (sample_rate >= 44100) {
+        score += 10.0;
+    }
+    if (sample_rate >= 96000) {
+        score += 5.0; 
+    }
+
+    if (bit_depth >= 16) {
+        score += 10.0;
+    }
+    if (bit_depth >= 24) {
+        score += 5.0; 
+    }
+
+    if (score > 100.0) {
+        return 100.0;
+    }
+
+    if (score < 0.0) {
+        score = 0.0;
+    }
+std::cout << "Quality: [WAVTrack::get_quality_score] \"" << get_title() << "\" score = " << (int)score << "/100" << std::endl;
+   
+
+    return score;
+}
 PointerWrapper<AudioTrack> WAVTrack::clone() const {
     // TODO: Implement the clone method
-    return PointerWrapper<AudioTrack>(nullptr); // Replace with your implementation
+    return PointerWrapper<AudioTrack>(new WAVTrack(*this)); // Replace with your implementation
 }

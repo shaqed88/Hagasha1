@@ -37,7 +37,10 @@ public:
      * Think about ownership and resource management.
      * Is the default destructor sufficient here?
      */
-    ~PointerWrapper() =default;
+     ~PointerWrapper() {
+        if(ptr != nullptr)
+        delete ptr; 
+    }
 
     // ========== COPY OPERATIONS (DELETED) ==========
 
@@ -60,14 +63,30 @@ public:
      * HINT: How should ownership transfer from one wrapper to another?
      * What should happen to the source wrapper after the move?
      */
-    PointerWrapper(PointerWrapper&& other) noexcept {}
+    PointerWrapper(PointerWrapper&& other) noexcept 
+
+    : ptr(other.ptr) 
+    {
+        std::cout << "Move constructor called for: " << this << std::endl;
+        other.ptr = nullptr; 
+    }
+
 
     /**
      * TODO: Implement move assignment operator
      * HINT: Handle cleanup of current resource and ownership transfer
      * Don't forget about self-assignment!
      */
-    PointerWrapper& operator=(PointerWrapper&& other) noexcept {
+  PointerWrapper& operator=(PointerWrapper&& other) noexcept {
+        
+       if (this != &other) {
+            if (ptr != nullptr) {
+                delete ptr; 
+            }
+      
+            ptr = other.ptr;
+            other.ptr = nullptr;
+        }
         return *this;
     }
 
@@ -89,7 +108,7 @@ public:
      * What safety checks should you perform?
      */
     T* operator->() const {
-        return nullptr;
+        return ptr;
     }
 
     /**
@@ -99,7 +118,7 @@ public:
      * @throws std::runtime_error if ptr is null
      */
     T* get() const {
-        return nullptr; // Placeholder
+        return ptr; // Placeholder
     }
 
     // ========== OWNERSHIP MANAGEMENT ==========
@@ -110,15 +129,29 @@ public:
      * Should the wrapper still own the pointer after calling release()?
      */
     T* release() {
-        return nullptr;
+     
+        T* temp = ptr;
+        ptr= nullptr; 
+          return temp;   
     }
-
     /**
      * TODO: Implement reset() function
      * HINT: How do you replace the currently wrapped pointer?
      * What should happen to the old pointer?
      */
-    void reset(T* new_ptr = nullptr) {
+     void reset(T* newptr = nullptr)
+    {
+          std::cout << "Reset called for pointer: " << newptr << std::endl;
+      if (ptr == newptr) {
+            return; 
+        }
+       
+
+        if (ptr != nullptr) {
+             delete ptr; 
+        }
+        ptr = newptr; 
+       
     }
 
     // ========== UTILITY FUNCTIONS ==========
@@ -128,18 +161,19 @@ public:
      * HINT: When should a wrapper be considered "true" or "false"?
      * Why might the explicit keyword be important here?
      */
-    explicit operator bool() const {
-        return false; //placeholder
+     explicit operator bool() const {
+      return ptr != nullptr;
     }
 
     /**
      * Swap two PointerWrapper objects
      * This is implemented for you as a reference
      */
-    void swap(PointerWrapper& other) noexcept {
+      void swap(PointerWrapper& other) noexcept {
         std::swap(ptr, other.ptr);
     }
 };
+
 
 // ========== NON-MEMBER FUNCTIONS ==========
 
@@ -163,6 +197,9 @@ void swap(PointerWrapper<T>& lhs, PointerWrapper<T>& rhs) noexcept {
     // TODO: Implement global swap function
     // HINT: You can use the member swap function
     //your code here...
+    using std::swap;
+    lhs.swap(rhs);
+
 }
 
 #endif // POINTERWRAPPER_H

@@ -142,21 +142,24 @@ void demonstrate_polymorphism() {
     tracks.push_back(std::unique_ptr<AudioTrack>(new MP3Track("MP3 Example", {"Artist 1"}, 200, 128, 320)));
     tracks.push_back(std::unique_ptr<AudioTrack>(new WAVTrack("WAV Example", {"Artist 2"}, 180, 130, 44100, 16)));
 
-    // Call virtual functions polymorphically
+// Call virtual functions polymorphically
     for (auto& track : tracks) {
         std::cout << "Track: " << track->get_title() << std::endl;
         track->load();                    // Virtual function call
         track->analyze_beatgrid();        // Virtual function call
-        std::cout << "Quality: " << track->get_quality_score() << std::endl;  // Virtual function call
+        double q = track->get_quality_score();   
+         std::cout << q << std::endl;   // Virtual function call
 
         // Test cloning
-        auto cloned = track->clone();
+       auto cloned = track->clone();
         if (cloned) {
             std::cout << "Cloned: " << cloned->get_title() << std::endl;
+            
+}
         }
         std::cout << std::endl;
     }
-}
+
 int main(int argc, char* argv[]) {    
     /**
      * Command-line argument parsing

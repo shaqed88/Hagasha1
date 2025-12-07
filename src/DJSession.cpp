@@ -73,7 +73,37 @@ bool DJSession::load_playlist(const std::string& playlist_name)  {
  */
 int DJSession::load_track_to_controller(const std::string& track_name) {
     // Your implementation here
-    return 0; // Placeholder
+   AudioTrack* canonical_track = library_service.findTrack(track_name);
+
+    if (canonical_track == nullptr) {
+        std::cerr << "[ERROR] Track: \"" << track_name << "\" not found in current playlist or library.\n";
+        stats.errors++;
+        return 0; 
+    }
+
+    std::cout << "[System] Loading track '" << track_name << "' to controller....\n";
+
+    int result_code = controller_service.loadTrackToCache(*canonical_track);
+
+    switch (result_code) {
+        case 1: 
+            stats.cache_hits++;
+            break;
+        case 0: 
+            stats.cache_misses++;
+            break;
+        case -1: 
+            stats.cache_misses++;
+            stats.cache_evictions++;
+            break;
+        default:
+            stats.errors++; 
+            std::cerr << "[ERROR] Controller loading failed for track '" << track_name << "'.\n";
+            break;
+    }
+    
+    return result_code;
+
 }
 
 /**
@@ -85,7 +115,33 @@ int DJSession::load_track_to_controller(const std::string& track_name) {
 bool DJSession::load_track_to_mixer_deck(const std::string& track_title) {
     std::cout << "[System] Delegating track transfer to MixingEngineService for: " << track_title << std::endl;
     // your implementation here
-    return false; // Placeholder
+    AudioTrack* track_from_cache = controller_service.getTrackFromCache(track_title);
+
+    if (track_from_cache == nullptr) {
+        std::cerr << "[ERROR] Track: \"" << track_title << "\" not found in cache. This should not happen if load_track_to_controller succeeded.\n";
+        stats.errors++;
+        return false;
+    }
+
+    int deck_code = mixing_service.loadTrackToDeck(*track_from_cache);
+
+    
+    switch (deck_code) {
+        case 0: 
+            stats.deck_loads_a++;
+            stats.transitions++;
+            return true;
+        case 1: 
+            stats.deck_loads_b++;
+            stats.transitions++;
+            return true;
+        case -1: 
+        default:
+            std::cerr << "[ERROR] Mixing service failed to load track '" << track_title << "' to deck.\n";
+            stats.errors++;
+            return false;
+    }
+
 }
 
 /**
@@ -118,7 +174,68 @@ void DJSession::simulate_dj_performance() {
 
     std::cout << "TODO: Implement the DJ performance simulation workflow here." << std::endl;
     // Your implementation here
+   std::vector<std::string> playlist_names;
+    playlist_names.reserve(session_config.playlists.size());
+
+    for (const auto &entry : session_config.playlists) {
+        playlist_names.push_back(entry.first);
+    }
+
+    std::sort(playlist_names.begin(), playlist_names.end());
+
+    // play_all = true by assignment rules (always automatic mode)
+     // bool play_all = true;
+
+    auto process_playlist = [&](const std::string& name) {
+        std::cout << "\n=== Loading Playlist: " << name << " ===\n";
+
+        // Load playlist (calls DJLibraryService to deep-clone tracks)
+        if (!load_playlist(name)) {
+            std::cerr << "[ERROR] Failed to load playlist \"" << name << "\".\n";
+            stats.errors++;
+            return;
+        }
+
+        // Get track titles of the JUST-LOADED playlist
+        std::vector<std::string> titles = library_service.getTrackTitles();
+
+        for (const std::string &title : titles) {
+            std::cout << "\n-- Processing: " << title << " --\n";
+            stats.tracks_processed++;
+
+            // STEP 1: Load into controller LRU cache
+            int cache_code = load_track_to_controller(title);
+
+            if (cache_code <= -2) {
+                // fatal clone/controller error, do NOT continue to mixer
+                continue;
+            }
+
+            // STEP 2: Load into mixer decks
+            bool deck_ok = load_track_to_mixer_deck(title);
+
+            if (!deck_ok) {
+                // mixer logged the error itself
+                continue;
+            }
+        }
+    };
+
+    // AUTOMATIC MODE (required by assignment)
+    std::cout << "\n[INFO] Running in Automatic Mode (Play All)\n";
+
+    for (const std::string &name : playlist_names) {
+        process_playlist(name);
+    }
+
+    std::cout << "\n[System] All playlists processed.\n";
+
+    // 7. Print summary
+    print_session_summary();
 }
+ 
+ 
+
 
 
 /* 

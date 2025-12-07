@@ -1,3 +1,4 @@
+
 #ifndef PLAYLIST_H
 #define PLAYLIST_H
 
@@ -20,7 +21,19 @@ struct PlaylistNode {
     PlaylistNode* next;
 
     PlaylistNode(AudioTrack* t) : track(t), next(nullptr) {}
-    ~PlaylistNode() = default;
+
+    // ~PlaylistNode() = default;
+
+
+    PlaylistNode(PlaylistNode&& other) noexcept :
+        track(std::move(other.track)), 
+        next(other.next)
+    {
+        other.next = nullptr;
+    }
+
+    PlaylistNode(const PlaylistNode&) = delete;
+    PlaylistNode& operator=(const PlaylistNode&) = delete;
 };
 
 class Playlist {
@@ -39,6 +52,19 @@ public:
      * Destructor
      */
     ~Playlist();
+
+   
+    Playlist(const Playlist& other);
+
+    
+    Playlist& operator=(const Playlist& other);
+
+    
+    Playlist(Playlist&& other) noexcept; 
+
+    Playlist& operator=(Playlist&& other) noexcept;
+
+    friend void swap(Playlist& first, Playlist& second) noexcept;
 
     /**
      * Add a track to the playlist
