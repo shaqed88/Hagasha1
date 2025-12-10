@@ -67,7 +67,7 @@ public:
 
     : ptr(other.ptr) 
     {
-        std::cout << "Move constructor called for: " << this << std::endl;
+        //std::cout << "Move constructor called for: " << this << std::endl;
         other.ptr = nullptr; 
     }
 
@@ -141,7 +141,7 @@ public:
      */
      void reset(T* newptr = nullptr)
     {
-          std::cout << "Reset called for pointer: " << newptr << std::endl;
+          //std::cout << "Reset called for pointer: " << newptr << std::endl;
       if (ptr == newptr) {
             return; 
         }

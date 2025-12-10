@@ -7,7 +7,7 @@ MP3Track::MP3Track(const std::string& title, const std::vector<std::string>& art
                    int duration, int bpm, int bitrate, bool has_tags)
     : AudioTrack(title, artists, duration, bpm), bitrate(bitrate), has_id3_tags(has_tags) {
 
-    std::cout << "MP3Track created: " << bitrate << " kbps" << std::endl;
+    //std::cout << "MP3Track created: " << bitrate << " kbps" << std::endl;
 }
 
 // ========== TODO: STUDENTS IMPLEMENT THESE VIRTUAL FUNCTIONS ==========
@@ -56,11 +56,9 @@ MP3Track& MP3Track::operator=(MP3Track&& other) noexcept {
 
 void MP3Track::load() {
     std::cout << "[MP3Track::load] Loading MP3: \"" << title
-              << "\" at " << bitrate << " kbps...\n";
+              << "\" at " << bitrate << " kbps..." << std::endl;
     // TODO: Implement MP3 loading with format-specific operations
     // NOTE: Use exactly 2 spaces before the arrow (→) character
-     std::cout << "[MP3Track::load] Loading MP3: \"" << get_title()
-              << "\" at " << bitrate << " kbps..." << std::endl;
 
     if (has_id3_tags) {
         std::cout << "  → Processing ID3 metadata (artist info, album art, etc.)..." << std::endl;
@@ -78,8 +76,6 @@ void MP3Track::analyze_beatgrid() {
      std::cout << "[MP3Track::analyze_beatgrid] Analyzing beat grid for: \"" << title << "\"\n";
     // TODO: Implement MP3-specific beat detection analysis
     // NOTE: Use exactly 2 spaces before each arrow (→) character
-    std::cout << "[MP3Track::analyze_beatgrid] Analyzing beat grid for: \""
-              << get_title() << "\"" << std::endl;
 
     double beats = (duration_seconds / 60.0) * bpm;
     int final_beats = static_cast<int>(beats);

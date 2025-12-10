@@ -13,7 +13,8 @@ void swap(Playlist& first, Playlist& second) noexcept {
 
 Playlist::Playlist(const std::string& name) 
     : head(nullptr), playlist_name(name), track_count(0) {
-    std::cout << "Created playlist: " << name << std::endl;
+    
+        //std::cout << "Created playlist: " << name << std::endl;
 }
 // TODO: Fix memory leaks!
 // Students must fix this in Phase 1
@@ -22,7 +23,7 @@ Playlist::~Playlist() {
     std::cout << "Destroying playlist: " << playlist_name << std::endl;
     #endif
     
-     std::cout << "Destroying playlist: " << playlist_name << std::endl;
+     //std::cout << "Destroying playlist: " << playlist_name << std::endl;
    
 
     PlaylistNode* current = head;
@@ -54,13 +55,22 @@ void Playlist::add_track(AudioTrack* track) {
     // Create new node - this allocates memory!
     PlaylistNode* new_node = new PlaylistNode(track);
 
-    // Add to front of list
-    new_node->next = head;
-    head = new_node;
-    track_count++;
+    // מקרה 1: הרשימה ריקה - החדש הוא הראש
+    if (head == nullptr) {
+        head = new_node;
+    } 
+    // מקרה 2: הרשימה לא ריקה - רצים לסוף ומוסיפים שם
+    else {
+        PlaylistNode* current = head;
+        // לולאה שמוצאת את האיבר האחרון (זה שה-next שלו הוא null)
+        while (current->next != nullptr) {
+            current = current->next;
+        }
+        // הדבקת החדש בקצה השרשרת
+        current->next = new_node;
+    }
 
-    std::cout << "Added '" << track->get_title() << "' to playlist '" 
-              << playlist_name << "'" << std::endl;
+    track_count++;
 }
 
 void Playlist::remove_track(const std::string& title) {
