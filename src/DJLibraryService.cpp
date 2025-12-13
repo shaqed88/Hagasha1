@@ -49,6 +49,8 @@ void DJLibraryService::buildLibrary(const std::vector<SessionConfig::TrackInfo>&
             continue;
         }
 
+        // We wrap the raw pointer in a PointerWrapper to manage its lifecycle automatically.
+
         if (new_track) {
             library.push_back(PointerWrapper<AudioTrack>(new_track));
         }
@@ -95,13 +97,6 @@ AudioTrack* DJLibraryService::findTrack(const std::string& track_title) {
     // Your implementation here
 AudioTrack* found_track = playlist.find_track(track_title);
 
-    // This is optional logging, but useful for debugging/confirmation
-    if (found_track) {
-        //std::cout << "[INFO] Found track: '" << track_title << "' in playlist.\n";
-    } else {
-        //std::cout << "[INFO] Track '" << track_title << "' not found in playlist.\n";
-    }
-
     return found_track;
 }
 void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name, 
@@ -110,38 +105,40 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name,
   // (a) Log: [INFO] Loading playlist: <name>
     std::cout << "[INFO] Loading playlist: " << playlist_name << std::endl;
 
-    // (b) Create new Playlist with the given name
-    // במקום clear() ו-set_name(), אנחנו יוצרים עצם חדש ודורסים את הישן.
-    // אופרטור ההשמה (=) ידאג לשחרר את הזיכרון של הפלייליסט הקודם.
+    // Assigning a new object calls the assignment operator, which cleans up the old playlist resources 
+    // and copies the new empty one efficiently.
     playlist = Playlist(playlist_name);
 
     std::cout << "Created playlist: " << playlist_name << std::endl;
 
-    // לולאה על האינדקסים (נשאר אותו דבר)
+   
     for (int index : track_indices) {
-        // המרה ל-0-based
+        
         size_t lib_index = index - 1;
 
-        // בדיקת גבולות
+    
         if (index < 1 || lib_index >= library.size()) {
             std::cout << "[WARNING] Invalid track index: " << index << ". Skipping." << std::endl;
             continue;
         }
 
-        // שליפת השיר המקורי
+        // Get the canonical track from the Library
         AudioTrack* canonical_track = library[lib_index].get();
         
-        // שכפול (Clone)
+        // We clone the track because a Playlist needs its own independent copy.
+        // We cannot just point to the library track because the playlist might modify it 
+        // or delete it later.
         PointerWrapper<AudioTrack> cloned_track = canonical_track->clone();
         
-        // בדיקת הצלחה
+
         if (cloned_track.get() != nullptr) {
             cloned_track->load();
             cloned_track->analyze_beatgrid();
             
             std::string title = cloned_track->get_title();
             
-            // הוספה לפלייליסט
+           // calling .release() because 'add_track' expects a raw pointer 
+           // and takes ownership (it will delete it later).
             playlist.add_track(cloned_track.release());
             
             std::cout << "Added '" << title << "' to playlist '" << playlist_name << "'" << std::endl;
@@ -150,7 +147,7 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name,
         }
     }
 
-    // סיכום
+
     std::cout << "[INFO] Playlist loaded: " << playlist_name 
               << " (" << playlist.getTracks().size() << " tracks)" << std::endl;
 }
@@ -164,6 +161,8 @@ std::vector<std::string> DJLibraryService::getTrackTitles() const {
  std::vector<std::string> titles;
 
     std::vector<AudioTrack*> tracks = playlist.getTracks();
+
+    // Optimization: Reserve memory to avoid reallocations
 
     titles.reserve(tracks.size());
     for (AudioTrack* track : tracks) {

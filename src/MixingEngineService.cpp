@@ -41,15 +41,22 @@ int MixingEngineService::loadTrackToDeck(const AudioTrack& track) {
     // Your implementation here
  std::cout << "\n=== Loading Track to Deck === " << std::endl;
 
+ // We clone the track again. Why? Because the Mixer needs to modify the BPM 
+    // for synchronization, but we don't want to change the BPM in the Library or Cache.
+
     PointerWrapper<AudioTrack> new_track_wrapper = track.clone();
     
     if (new_track_wrapper.get() == nullptr) {
         std::cerr << "[ERROR] loadTrackToDeck: Track: '" << track.get_title() << "' failed to clone." << std::endl;
         return -1;
     }
+
+    // If active is 0, target is 1. If active is 1, target is 0.
     
     size_t target_deck = 1 - active_deck;
     std::cout << "[Deck Switch] Target deck: " << target_deck << std::endl;
+
+    // Before loading a new track, we must free the memory of the previous track on this deck.
 
     if (decks[target_deck] != nullptr) {
         delete decks[target_deck];
@@ -61,19 +68,24 @@ int MixingEngineService::loadTrackToDeck(const AudioTrack& track) {
 
     if (auto_sync) {
         if (decks[active_deck] != nullptr) {
-            // אם יש שיר בדק הפעיל - מנסים לסנכרן
-            if (can_mix_tracks(new_track_wrapper)) {
+            // Check if BPM difference is too large
+            if (!can_mix_tracks(new_track_wrapper)) {
+
                 sync_bpm(new_track_wrapper);
             }
-        } else {
-            // אם הדק הפעיל ריק - מדפיסים את השגיאה שהמנחה מצפה לה
-            std::cout << "[Sync BPM] Cannot sync - one of the decks is empty." << std::endl;
+
         }
+        else {
+
+            std::cout << "[Sync BPM] Cannot sync - one of the decks is empty." << std::endl;
+
+        } 
     }
     
     decks[target_deck] = new_track_wrapper.release(); 
     std::cout << "[Load Complete] '" << decks[target_deck]->get_title() << "' is now loaded on deck " << target_deck << std::endl;
-
+    
+    // The new track becomes the active one.
     active_deck = target_deck;
     std::cout << "[Active Deck] Switched to deck " << active_deck << std::endl;
 
@@ -108,27 +120,13 @@ bool MixingEngineService::can_mix_tracks(const PointerWrapper<AudioTrack>& track
         return false;
     }
 
-    float track_bpm = track->get_bpm();
-    float active_bpm = decks[active_deck]->get_bpm();
+    int track_bpm = track->get_bpm();
+    int active_bpm = decks[active_deck]->get_bpm();
     
-    // חישוב ההפרש
-    float diff = std::abs(track_bpm - active_bpm);
+    
+    int diff = std::abs(track_bpm - active_bpm);
 
-    // בדיקה פשוטה ושקטה. בלי cout!
-    // שים לב: השימוש ב-<= חשוב (כולל הגבול)
     return (diff <= bpm_tolerance); 
-
- //AudioTrack* active_track = decks[active_deck];
-    //AudioTrack* new_track_ptr = track.get();
-
-    //if (active_track == nullptr || new_track_ptr == nullptr) {
-        //return false;
-    //}
-
-    //double active_bpm = active_track->get_bpm();
-    //double new_bpm = new_track_ptr->get_bpm();
-    //double diff = std::abs(active_bpm - new_bpm);
-
 }
 
 /**
@@ -138,35 +136,15 @@ bool MixingEngineService::can_mix_tracks(const PointerWrapper<AudioTrack>& track
 void MixingEngineService::sync_bpm(const PointerWrapper<AudioTrack>& track) const {
 if (decks[active_deck] == nullptr) return;
 
-    float current_bpm = track->get_bpm();
-    float target_bpm = decks[active_deck]->get_bpm();
-
-    // רק אם יש הבדל ב-BPM, מבצעים סנכרון ומדפיסים
-    // (זה מונע הדפסות סתמיות אם הם כבר זהים)
-    if (current_bpm != target_bpm) {
-        std::cout << "[Sync BPM] Syncing BPM from " << current_bpm 
-                  << " to " << target_bpm << std::endl;
-    }
-
-//AudioTrack* active_track = decks[active_deck];
-   // AudioTrack* new_track_ptr = track.get();
-
-    //if (active_track == nullptr || new_track_ptr == nullptr) {
-      //  return;
-   // }
-
-    //float current_bpm = decks[active_deck]->get_bpm();
-    //float target_bpm = track->get_bpm();
-
-    //std::cout << "[Sync BPM] Syncing BPM from " << current_bpm << " to " << target_bpm << std::endl;
-
-    //double active_bpm = active_track->get_bpm();
-    //double new_bpm = new_track_ptr->get_bpm();
-    //double avg_bpm = (active_bpm + new_bpm) / 2.0;
-
-    //std::cout << "[BPM Sync] Syncing BPM of '" << new_track_ptr->get_title() 
-              //<< "' from " << new_bpm << " -> " << avg_bpm 
-             // << " (Active BPM: " << active_bpm << ")" << std::endl;
-              
+    int current_bpm = track->get_bpm();
+    int active_bpm = decks[active_deck]->get_bpm();
     
+     int target_bpm = (active_bpm + current_bpm) / 2;
+
+        std::cout << "[Sync BPM] Syncing BPM from " << current_bpm 
+              << " to " << target_bpm << std::endl;
+
+    track->set_bpm(target_bpm);
+
+
 }

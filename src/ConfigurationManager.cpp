@@ -10,6 +10,9 @@ ConfigurationManager::ConfigurationManager() :
 }
 
 bool ConfigurationManager::loadFromFile(const std::string& config_path) {
+    // std::ifstream (Input File Stream) is used for reading files.
+    // Always checking is_open() ensures the file exists and we have permissions.
+    
     std::ifstream file(config_path);
     if (!file.is_open()) {
         std::cerr << "[ERROR] Could not open config file: " << config_path << std::endl;

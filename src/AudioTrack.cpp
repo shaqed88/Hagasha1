@@ -59,7 +59,6 @@ AudioTrack::AudioTrack(const AudioTrack& other)
     #ifdef DEBUG
     std::cout << "AudioTrack copy constructor called for: " << other.title << std::endl;
     #endif
-    //std::cout << "AudioTrack copy constructor called for: " << other.title << std::endl;
 
      
     if (waveform_size > 0)
@@ -82,10 +81,13 @@ AudioTrack& AudioTrack::operator=(const AudioTrack& other) {
     #endif
     // Your code here...
       if (this == &other) {
-        return *this; // מניעת השמה עצמית
+        return *this; 
     }
 
     std::cout << "AudioTrack copy assignment called for: " << other.title << std::endl;
+
+    // "Exception Safety. If 'new' fails (throws bad_alloc), we haven't deleted our old data yet.
+    // The object remains valid.
     
     double* new_waveform_data = nullptr;
     if (other.waveform_size > 0) {
@@ -159,6 +161,9 @@ AudioTrack& AudioTrack::operator=(AudioTrack&& other) noexcept {
     waveform_data = other.waveform_data;
     waveform_size = other.waveform_size;
 
+    //  CRITICAL. We stole the pointer. If we don't nullify the source, 
+    // the source's destructor will delete the memory we are now using.
+
     other.waveform_data = nullptr;
     other.waveform_size = 0;
 
@@ -166,6 +171,10 @@ AudioTrack& AudioTrack::operator=(AudioTrack&& other) noexcept {
 
    
     return *this;
+}
+
+void AudioTrack::set_bpm(int new_bpm) {
+    this->bpm = new_bpm;
 }
 
 

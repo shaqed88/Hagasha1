@@ -66,6 +66,8 @@ public:
      */
     AudioTrack& operator=(AudioTrack&& other) noexcept;
 
+    void set_bpm(int new_bpm);
+
     // ========== VIRTUAL FUNCTIONS FOR POLYMORPHISM ==========
 
     /**

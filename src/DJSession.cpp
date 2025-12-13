@@ -73,6 +73,9 @@ bool DJSession::load_playlist(const std::string& playlist_name)  {
  */
 int DJSession::load_track_to_controller(const std::string& track_name) {
     // Your implementation here
+    // DATA FLOW STEP 1: Fetch from Library (Source of Truth)
+   // We need the canonical track data before we can put it in the cache.
+
    AudioTrack* canonical_track = library_service.findTrack(track_name);
 
     if (canonical_track == nullptr) {
@@ -82,6 +85,10 @@ int DJSession::load_track_to_controller(const std::string& track_name) {
     }
 
     std::cout << "[System] Loading track '" << track_name << "' to controller...\n";
+
+    // ORCHESTRATION:
+    // This class acts as a Manager/Facade. It delegates the complex logic 
+    // of caching and cloning to the 'controller_service'.
 
     int result_code = controller_service.loadTrackToCache(*canonical_track);
 
@@ -115,6 +122,10 @@ int DJSession::load_track_to_controller(const std::string& track_name) {
 bool DJSession::load_track_to_mixer_deck(const std::string& track_title) {
     std::cout << "[System] Delegating track transfer to MixingEngineService for: " << track_title << std::endl;
     // your implementation here
+    // DATA FLOW STEP 2: Fetch from Cache
+    // We do NOT ask the library. We must ask the Controller to ensure 
+    // the track is actually loaded in memory (RAM) before playing.
+    
     AudioTrack* track_from_cache = controller_service.getTrackFromCache(track_title);
 
     if (track_from_cache == nullptr) {
@@ -182,11 +193,7 @@ void DJSession::simulate_dj_performance() {
 
     std::sort(playlist_names.begin(), playlist_names.end());
 
-    // play_all = true by assignment rules (always automatic mode)
-     // bool play_all = true;
-
     auto process_playlist = [&](const std::string& name) {
-        //std::cout << "\n=== Loading Playlist: " << name << " ===\n";
 
         // Load playlist (calls DJLibraryService to deep-clone tracks)
         if (!load_playlist(name)) {
@@ -199,7 +206,7 @@ void DJSession::simulate_dj_performance() {
         std::vector<std::string> titles = library_service.getTrackTitles();
 
         for (const std::string &title : titles) {
-            std::cout << "\n-- Processing: " << title << " --\n";
+            std::cout << "\n--- Processing: " << title << " ---\n";
             stats.tracks_processed++;
 
             // STEP 1: Load into controller LRU cache

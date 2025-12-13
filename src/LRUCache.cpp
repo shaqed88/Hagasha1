@@ -18,7 +18,8 @@ size_t index = findSlot(track_id);
         return nullptr;
     }
 
-    //std::cout << "[LRUCache] HIT: Track '" << track_id << "' served from slot " << index << "." << std::endl;
+    //It is not enough to just return the pointer. We MUST increment the global counter
+    // and update this specific slot's access time so it becomes the "Most Recently Used".
     return slots[index].access(++access_counter);
 }
 
@@ -33,6 +34,9 @@ bool LRUCache::put(PointerWrapper<AudioTrack> track) {
     
     const std::string title = track->get_title();
     size_t existing_index = findSlot(title);
+
+    // If the track is already in the cache, we don't overwrite it. 
+    // We just update its timestamp (refresh it) and return.
     
     if (existing_index != max_size) {
         slots[existing_index].access(++access_counter); 
@@ -42,6 +46,8 @@ bool LRUCache::put(PointerWrapper<AudioTrack> track) {
 
     size_t target_slot = findEmptySlot();
     bool evicted = false;
+
+    // If no empty slot, we must Evict the Least Recently Used item.
     
     if (target_slot == max_size) {
         evicted = evictLRU();
@@ -60,8 +66,6 @@ bool LRUCache::put(PointerWrapper<AudioTrack> track) {
     }
     
     slots[target_slot].store(std::move(track), ++access_counter); 
-    
-    //std::cout << "[LRUCache] MISS: Track '" << title << "' loaded to slot " << target_slot << "." << std::endl;
 
     return evicted;
 }
@@ -77,7 +81,7 @@ size_t index = findLRUSlot();
     
     AudioTrack* victim = slots[index].getTrack();
     if (victim) {
-        //std::cout << "[LRUCache] Evicting LRU track: '" << victim-> get_title() << "' from slot " << index << "." << std::endl;
+        
     } else {
         std::cout << "[LRUCache] Evicted slot " << index << " (track pointer was null)." << std::endl;
     }
@@ -134,6 +138,9 @@ size_t LRUCache::findSlot(const std::string& track_id) const {
  * TODO: Implement the findLRUSlot() method for LRUCache
  */
 size_t LRUCache::findLRUSlot() const {
+    // We initialize 'best_time' to the maximum possible number.
+    // Then we iterate through all slots to find the one with the *smallest* time value.
+    
     uint64_t best_time = std::numeric_limits<uint64_t>::max(); 
     size_t best_index = max_size;
 

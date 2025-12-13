@@ -55,18 +55,18 @@ void Playlist::add_track(AudioTrack* track) {
     // Create new node - this allocates memory!
     PlaylistNode* new_node = new PlaylistNode(track);
 
-    // מקרה 1: הרשימה ריקה - החדש הוא הראש
+    
     if (head == nullptr) {
         head = new_node;
     } 
-    // מקרה 2: הרשימה לא ריקה - רצים לסוף ומוסיפים שם
+   
     else {
         PlaylistNode* current = head;
-        // לולאה שמוצאת את האיבר האחרון (זה שה-next שלו הוא null)
+        
         while (current->next != nullptr) {
             current = current->next;
         }
-        // הדבקת החדש בקצה השרשרת
+    
         current->next = new_node;
     }
 
