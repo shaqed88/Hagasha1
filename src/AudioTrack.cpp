@@ -9,12 +9,7 @@ AudioTrack::AudioTrack(const std::string& title, const std::vector<std::string>&
                       int duration, int bpm, size_t waveform_samples)
     : title(title), artists(artists), duration_seconds(duration), bpm(bpm), waveform_data(nullptr),
        waveform_size(waveform_samples) {
-        std::cout << "AudioTrack created: " << title << " by " << std::endl; 
-        if (!artists.empty())
-             {
-            std::cout << artists[0] << " " << std::endl;
-           }
-
+    
     // Allocate memory for waveform analysis
     waveform_data = new double[waveform_size];
 
@@ -43,8 +38,8 @@ AudioTrack::~AudioTrack() {
     std::cout << "AudioTrack destructor called for: " << title << std::endl;
     #endif
     // Your code here...
-    std::cout << "AudioTrack destructor called for: "
-              << title << std::endl;
+    //std::cout << "AudioTrack destructor called for: "
+             // << title << std::endl;
     delete[] waveform_data; 
     waveform_data = nullptr;
 }
@@ -52,9 +47,6 @@ AudioTrack::~AudioTrack() {
 AudioTrack::AudioTrack(const AudioTrack& other)
 
     // TODO: Implement the copy constructor
-    #ifdef DEBUG
-    std::cout << "AudioTrack copy constructor called for: " << other.title << std::endl;
-    #endif
     // Your code here...
      : title(other.title), 
       artists(other.artists),
@@ -64,8 +56,10 @@ AudioTrack::AudioTrack(const AudioTrack& other)
       waveform_size(other.waveform_size)
       
     {
-   
+    #ifdef DEBUG
     std::cout << "AudioTrack copy constructor called for: " << other.title << std::endl;
+    #endif
+    //std::cout << "AudioTrack copy constructor called for: " << other.title << std::endl;
 
      
     if (waveform_size > 0)
@@ -121,9 +115,7 @@ AudioTrack& AudioTrack::operator=(const AudioTrack& other) {
 
 AudioTrack::AudioTrack(AudioTrack&& other) noexcept 
     // TODO: Implement the move constructor
-    #ifdef DEBUG
-    std::cout << "AudioTrack move constructor called for: " << other.title << std::endl;
-    #endif
+    
     // Your code here...
     : title(std::move(other.title)),
       artists(std::move(other.artists)),
@@ -133,6 +125,9 @@ AudioTrack::AudioTrack(AudioTrack&& other) noexcept
       waveform_size(other.waveform_size)  
       
 {
+    #ifdef DEBUG
+    std::cout << "AudioTrack move constructor called for: " << other.title << std::endl;
+    #endif
      std::cout << "AudioTrack move constructor called for: " << std::endl;
      
     

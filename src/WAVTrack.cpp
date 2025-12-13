@@ -5,7 +5,7 @@ WAVTrack::WAVTrack(const std::string& title, const std::vector<std::string>& art
                    int duration, int bpm, int sample_rate, int bit_depth)
     : AudioTrack(title, artists, duration, bpm), sample_rate(sample_rate), bit_depth(bit_depth) {
 
-    std::cout << "WAVTrack created: " << sample_rate << "Hz/" << bit_depth << "bit" << std::endl;
+    //std::cout << "WAVTrack created: " << sample_rate << "Hz/" << bit_depth << "bit" << std::endl;
 }
 
 // ========== TODO: STUDENTS IMPLEMENT THESE VIRTUAL FUNCTIONS ==========
@@ -78,8 +78,6 @@ void WAVTrack::analyze_beatgrid() {
     // 2. Calculate beats: (duration_seconds / 60.0) * bpm
     // 3. Print number of beats and mention uncompressed precision
     // should print "  → Estimated beats: <beats>  → Precision factor: 1.0 (uncompressed audio)"
-    std::cout << "[WAVTrack::analyze_beatgrid] Analyzing beat grid for: \""
-              << get_title() << "\"" << std::endl;
 
     double beats = (duration_seconds / 60.0) * bpm;
     int final_beats = static_cast<int>(beats);

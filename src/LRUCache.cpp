@@ -18,7 +18,7 @@ size_t index = findSlot(track_id);
         return nullptr;
     }
 
-    std::cout << "[LRUCache] HIT: Track '" << track_id << "' served from slot " << index << "." << std::endl;
+    //std::cout << "[LRUCache] HIT: Track '" << track_id << "' served from slot " << index << "." << std::endl;
     return slots[index].access(++access_counter);
 }
 
@@ -61,7 +61,7 @@ bool LRUCache::put(PointerWrapper<AudioTrack> track) {
     
     slots[target_slot].store(std::move(track), ++access_counter); 
     
-    std::cout << "[LRUCache] MISS: Track '" << title << "' loaded to slot " << target_slot << "." << std::endl;
+    //std::cout << "[LRUCache] MISS: Track '" << title << "' loaded to slot " << target_slot << "." << std::endl;
 
     return evicted;
 }
@@ -77,7 +77,7 @@ size_t index = findLRUSlot();
     
     AudioTrack* victim = slots[index].getTrack();
     if (victim) {
-        std::cout << "[LRUCache] Evicting LRU track: '" << victim-> get_title() << "' from slot " << index << "." << std::endl;
+        //std::cout << "[LRUCache] Evicting LRU track: '" << victim-> get_title() << "' from slot " << index << "." << std::endl;
     } else {
         std::cout << "[LRUCache] Evicted slot " << index << " (track pointer was null)." << std::endl;
     }
@@ -134,7 +134,7 @@ size_t LRUCache::findSlot(const std::string& track_id) const {
  * TODO: Implement the findLRUSlot() method for LRUCache
  */
 size_t LRUCache::findLRUSlot() const {
-uint64_t best_time = std::numeric_limits<uint64_t>::max(); 
+    uint64_t best_time = std::numeric_limits<uint64_t>::max(); 
     size_t best_index = max_size;
 
     for (size_t i = 0; i < max_size; ++i) {

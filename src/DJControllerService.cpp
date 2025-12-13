@@ -19,7 +19,7 @@ int DJControllerService::loadTrackToCache(AudioTrack& track) {
         return 1;
     }
 
-    std::cout << "[Controller] MISS: Cloning track '" << title << "' for caching." << std::endl;
+    //std::cout << "[Controller] MISS: Cloning track '" << title << "' for caching." << std::endl;
     PointerWrapper<AudioTrack> cloned_track = track.clone(); 
 
     if (cloned_track.get() == nullptr) {
@@ -27,17 +27,17 @@ int DJControllerService::loadTrackToCache(AudioTrack& track) {
         return 0; 
     }
 
-    std::cout << "[Controller] Preparing track: load() and analyze_beatgrid()." << std::endl;
+    //std::cout << "[Controller] Preparing track: load() and analyze_beatgrid()." << std::endl;
     cloned_track->load();
     cloned_track->analyze_beatgrid();
 
     bool evicted = cache.put(std::move(cloned_track));
 
     if (evicted) {
-        std::cout << "[Controller] MISS+EVICTION: '" << title << "' loaded, an old track was evicted." << std::endl;
+        //std::cout << "[Controller] MISS+EVICTION: '" << title << "' loaded, an old track was evicted." << std::endl;
         return -1;
     } else {
-        std::cout << "[Controller] MISS: '" << title << "' loaded successfully." << std::endl;
+        //std::cout << "[Controller] MISS: '" << title << "' loaded successfully." << std::endl;
         return 0;
     }
 }
@@ -55,7 +55,12 @@ void DJControllerService::displayCacheStatus() const {
 /**
  * TODO: Implement getTrackFromCache method
  */
-AudioTrack* DJControllerService::getTrackFromCache(const std::string& /*track_title*/) {
+AudioTrack* DJControllerService::getTrackFromCache(const std::string& track_title) {
     // Your implementation here
+    AudioTrack* track = cache.get(track_title);
+    if (track != nullptr) {
+        return track;
+    }
+    
     return nullptr; // Placeholder
 }

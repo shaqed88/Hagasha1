@@ -81,7 +81,7 @@ int DJSession::load_track_to_controller(const std::string& track_name) {
         return 0; 
     }
 
-    std::cout << "[System] Loading track '" << track_name << "' to controller....\n";
+    std::cout << "[System] Loading track '" << track_name << "' to controller...\n";
 
     int result_code = controller_service.loadTrackToCache(*canonical_track);
 
@@ -172,7 +172,6 @@ void DJSession::simulate_dj_performance() {
     std::cout << "Cache Capacity: " << session_config.controller_cache_size << " slots (LRU policy)" << std::endl;
     std::cout << "\n--- Processing Tracks ---" << std::endl;
 
-    std::cout << "TODO: Implement the DJ performance simulation workflow here." << std::endl;
     // Your implementation here
    std::vector<std::string> playlist_names;
     playlist_names.reserve(session_config.playlists.size());
@@ -187,7 +186,7 @@ void DJSession::simulate_dj_performance() {
      // bool play_all = true;
 
     auto process_playlist = [&](const std::string& name) {
-        std::cout << "\n=== Loading Playlist: " << name << " ===\n";
+        //std::cout << "\n=== Loading Playlist: " << name << " ===\n";
 
         // Load playlist (calls DJLibraryService to deep-clone tracks)
         if (!load_playlist(name)) {
@@ -206,6 +205,8 @@ void DJSession::simulate_dj_performance() {
             // STEP 1: Load into controller LRU cache
             int cache_code = load_track_to_controller(title);
 
+            controller_service.displayCacheStatus();
+
             if (cache_code <= -2) {
                 // fatal clone/controller error, do NOT continue to mixer
                 continue;
@@ -213,6 +214,8 @@ void DJSession::simulate_dj_performance() {
 
             // STEP 2: Load into mixer decks
             bool deck_ok = load_track_to_mixer_deck(title);
+
+            mixing_service.displayDeckStatus();
 
             if (!deck_ok) {
                 // mixer logged the error itself
@@ -222,16 +225,17 @@ void DJSession::simulate_dj_performance() {
     };
 
     // AUTOMATIC MODE (required by assignment)
-    std::cout << "\n[INFO] Running in Automatic Mode (Play All)\n";
+    //std::cout << "\n[INFO] Running in Automatic Mode (Play All)\n";
 
     for (const std::string &name : playlist_names) {
         process_playlist(name);
+        print_session_summary();
     }
 
-    std::cout << "\n[System] All playlists processed.\n";
+    std::cout << "Session cancelled by user or all playlists played." << std::endl;
 
     // 7. Print summary
-    print_session_summary();
+    //print_session_summary();
 }
  
  

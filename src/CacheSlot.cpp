@@ -14,11 +14,17 @@ void CacheSlot::store(PointerWrapper<AudioTrack> track_ptr, uint64_t access_time
 
 AudioTrack* CacheSlot::access(uint64_t access_time) {
     if (!occupied) {
+        std::cout << "[CacheSlot DEBUG] Error: Slot accessed but occupied=false!" << std::endl;
         return nullptr;
     }
     
+    AudioTrack* ptr = track.get();
+    if (ptr == nullptr) {
+        std::cout << "[CacheSlot DEBUG] Critical Error: Slot is occupied but internal pointer is NULL!" << std::endl;
+    }
+
     last_access_time = access_time;
-    return track.get();
+    return ptr;
 }
 
 void CacheSlot::clear() {
